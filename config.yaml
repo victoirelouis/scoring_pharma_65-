@@ -1,0 +1,51 @@
+# Configuration du projet Scoring Pharma 65+
+
+# Poids des composantes du score (doivent totaliser 1.0)
+weights:
+  demographic: 0.35
+  geographic: 0.25
+  economic: 0.25
+  service: 0.15
+
+# Catégories de score (min, max)
+categories:
+  A+:
+    min: 90
+    max: 100
+  A:
+    min: 80
+    max: 89
+  B:
+    min: 65
+    max: 79
+  C:
+    min: 50
+    max: 64
+  D:
+    min: 0
+    max: 49
+
+# Paramètres géographiques
+geographic:
+  radius_km: 2.0  # Rayon de recherche des concurrents en km
+  
+# Paramètres d'export
+export:
+  output_dir: output
+  formats:
+    - csv
+    - json
+  create_visualizations: true
+
+# Paramètres de logging
+logging:
+  level: INFO
+  format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+
+# Chemins des fichiers de données
+data:
+  dir: data
+  pharmacies: pharmacies.csv
+  demographics: demographics.csv
+  economic: economic.csv
+  competitors: competitors.csv
