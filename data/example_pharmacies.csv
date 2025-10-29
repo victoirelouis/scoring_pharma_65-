@@ -1,0 +1,6 @@
+id_pharmacie,nom,adresse,latitude,longitude,code_postal,ville
+P001,Pharmacie du Centre,15 Rue de la République,48.8566,2.3522,75001,Paris
+P002,Pharmacie Saint-Jean,23 Avenue des Fleurs,45.7640,4.8357,69001,Lyon
+P003,Pharmacie de la Gare,8 Boulevard Victor Hugo,43.2965,5.3698,13001,Marseille
+P004,Pharmacie Moderne,42 Rue Nationale,47.2184,1.5536,37000,Tours
+P005,Pharmacie des Alpes,16 Place de la Mairie,45.1885,5.7245,38000,Grenoble

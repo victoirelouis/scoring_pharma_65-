@@ -46,6 +46,7 @@ ENV/
 data/*.csv
 data/*.xlsx
 data/*.json
+!data/example_*.csv
 !data/.gitkeep
 !data/README.md
 
