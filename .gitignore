@@ -1,0 +1,92 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# Data - AUCUNE DONNÉE dans Git
+data/input/**
+data/output/**
+data/cache/**
+data/processed/**
+data/reports/**
+!data/input/.gitkeep
+!data/output/.gitkeep
+!data/cache/.gitkeep
+!data/processed/.gitkeep
+!data/reports/.gitkeep
+
+# IMPORTANT: Cache OSM (trop volumineux pour GitHub)
+scripts/cache/
+cache/
+
+# Tous les fichiers de données
+*.csv
+*.json
+*.geojson
+*.gpkg
+*.shp
+*.dbf
+*.shx
+*.prj
+*.cpg
+
+# Logs
+*.log
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Documentation builds
+docs/_build/
+docs/_static/
+docs/_templates/
+
+# Environment variables
+.env
+.env.local
+
+# OS
+Thumbs.db
+
+# Fichiers de sauvegarde
+*_backup.py
+*.bak
