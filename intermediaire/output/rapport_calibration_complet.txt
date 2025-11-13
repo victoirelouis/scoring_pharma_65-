@@ -1,0 +1,17 @@
+================================================================================
+RAPPORT DE CALIBRATION COMPLETE
+================================================================================
+
+Date : 2025-11-12 16:47:53
+Pharmacies calibration : 19,307
+
+PERIMETRES :
+  - drive_10min : R2 moyen age=0.009, genre=0.011
+  - walk_5min   : R2 moyen age=0.002, genre=0.003
+
+SEGMENTATIONS :
+  - type_zone            : 5 categories
+  - tourisme             : 6 categories
+  - geographie           : 3 categories
+  - isolement            : 2 categories
+  - densite_seniors      : 3 categories

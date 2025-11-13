@@ -1,0 +1,84 @@
+================================================================================
+RAPPORT D'ANALYSE POPULATION PAR ISOCHRONE
+================================================================================
+Date : 2025-11-13 07:36:22
+
+CONFIGURATION
+--------------------------------------------------------------------------------
+Nombre de pharmacies analysées : 19,307
+Nombre d'IRIS utilisés : 48,484
+
+STATISTIQUES PAR ISOCHRONE
+--------------------------------------------------------------------------------
+
+WALK_5MIN:
+  Population totale moyenne : 898
+  Population totale médiane : 301
+  Population 65+ moyenne : 164
+  Population 65+ médiane : 65
+  Taux seniors moyen : 22.4%
+  Population 65_74 moyenne : 81
+  Population 75_84 moyenne : 30
+  Population 85_plus moyenne : 52
+
+WALK_10MIN:
+  Population totale moyenne : 3327
+  Population totale médiane : 1216
+  Population 65+ moyenne : 608
+  Population 65+ médiane : 272
+  Taux seniors moyen : 22.4%
+  Population 65_74 moyenne : 301
+  Population 75_84 moyenne : 113
+  Population 85_plus moyenne : 195
+
+DRIVE_5MIN:
+  Population totale moyenne : 30482
+  Population totale médiane : 17669
+  Population 65+ moyenne : 5680
+  Population 65+ médiane : 3645
+  Taux seniors moyen : 22.0%
+  Population 65_74 moyenne : 2871
+  Population 75_84 moyenne : 1053
+  Population 85_plus moyenne : 1756
+
+DRIVE_10MIN:
+  Population totale moyenne : 100722
+  Population totale médiane : 50788
+  Population 65+ moyenne : 17961
+  Population 65+ médiane : 10755
+  Taux seniors moyen : 21.5%
+  Population 65_74 moyenne : 9212
+  Population 75_84 moyenne : 3324
+  Population 85_plus moyenne : 5425
+
+DRIVE_15MIN:
+  Population totale moyenne : 203241
+  Population totale médiane : 90811
+  Population 65+ moyenne : 35626
+  Population 65+ médiane : 19560
+  Taux seniors moyen : 21.3%
+  Population 65_74 moyenne : 18388
+  Population 75_84 moyenne : 6588
+  Population 85_plus moyenne : 10650
+
+DRIVE_20MIN:
+  Population totale moyenne : 330017
+  Population totale médiane : 138519
+  Population 65+ moyenne : 57187
+  Population 65+ médiane : 29103
+  Taux seniors moyen : 21.2%
+  Population 65_74 moyenne : 29629
+  Population 75_84 moyenne : 10564
+  Population 85_plus moyenne : 16993
+
+DISTRIBUTION POPULATION 65+ (drive_10min)
+--------------------------------------------------------------------------------
+  - < 500 : 226 pharmacies (1.2%)
+  - 500-1000 : 396 pharmacies
+  - 1000-2000 : 1,202 pharmacies
+  - 2000-5000 : 3,674 pharmacies
+  - 5000+ : 13,809 pharmacies
+
+================================================================================
+FIN DU RAPPORT
+================================================================================

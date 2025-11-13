@@ -1,0 +1,79 @@
+================================================================================
+RAPPORT DE DÉDUPLICATION DES HUBS
+================================================================================
+Date : 2025-11-12 11:38:58
+
+CONFIGURATION
+--------------------------------------------------------------------------------
+Déduplication activée : True
+Distance de clustering : 50 mètres
+Nombre de pharmacies traitées : 19,307
+
+STATISTIQUES GLOBALES
+--------------------------------------------------------------------------------
+Total hubs avant déduplication : 21,539,793
+Total hubs après déduplication : 16,273,376.1
+Réduction due à colocalisation : 24.4%
+
+STATISTIQUES PAR ISOCHRONE
+--------------------------------------------------------------------------------
+
+WALK_5MIN:
+  Total hubs brut : 370,815
+  Total hubs dédupliqué : 297,986.4
+  Taux colocalisation moyen : 10.4%
+
+DRIVE_10MIN:
+  Total hubs brut : 23,980,079
+  Total hubs dédupliqué : 18,157,546.6
+  Taux colocalisation moyen : 16.4%
+
+STATISTIQUES PAR FAMILLE DE HUBS
+--------------------------------------------------------------------------------
+
+Famille 'sante_generale':
+  walk_5min - Total: 198,512.4 | Moyenne/pharma: 10.28
+  drive_10min - Total: 11,292,515.6 | Moyenne/pharma: 584.89
+
+Famille 'sante_specialisee':
+  walk_5min - Total: 4,241.5 | Moyenne/pharma: 0.22
+  drive_10min - Total: 205,677.0 | Moyenne/pharma: 10.65
+
+Famille 'services_seniors':
+  walk_5min - Total: 10,912.0 | Moyenne/pharma: 0.57
+  drive_10min - Total: 530,677.5 | Moyenne/pharma: 27.49
+
+Famille 'accessibilite':
+  walk_5min - Total: 82,613.5 | Moyenne/pharma: 4.28
+  drive_10min - Total: 6,012,788.0 | Moyenne/pharma: 311.43
+
+STATISTIQUES CATÉGORIES DÉTAILLÉES
+--------------------------------------------------------------------------------
+
+Catégorie 'medecin':
+  walk_5min - Total: 186,435.7 | Moyenne/pharma: 9.66
+  drive_10min - Total: 10,706,887.1 | Moyenne/pharma: 554.56
+
+Catégorie 'ehpad':
+  walk_5min - Total: 3,816.0 | Moyenne/pharma: 0.20
+  drive_10min - Total: 218,124.0 | Moyenne/pharma: 11.30
+
+Catégorie 'hopital':
+  walk_5min - Total: 2,516.0 | Moyenne/pharma: 0.13
+  drive_10min - Total: 208,345.0 | Moyenne/pharma: 10.79
+
+Catégorie 'laboratoire':
+  walk_5min - Total: 4,110.7 | Moyenne/pharma: 0.21
+  drive_10min - Total: 147,457.0 | Moyenne/pharma: 7.64
+
+Catégorie 'supermarche':
+  walk_5min - Total: 22,663.0 | Moyenne/pharma: 1.17
+  drive_10min - Total: 1,134,292.0 | Moyenne/pharma: 58.75
+
+Catégorie 'bus':
+  walk_5min - Total: 55,554.0 | Moyenne/pharma: 2.88
+  drive_10min - Total: 4,686,331.5 | Moyenne/pharma: 242.73
+
+================================================================================
+FIN DU RAPPORT
+================================================================================
