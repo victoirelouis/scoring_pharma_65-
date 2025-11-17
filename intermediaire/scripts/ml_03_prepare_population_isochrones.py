@@ -461,7 +461,10 @@ class PopulationProcessor:
         result['pop_femmes_75_84'] = ((f_75p - f_85p).clip(lower=0) * intersected['surface_ratio']).sum()
         result['pop_femmes_85_plus'] = (f_85p * intersected['surface_ratio']).sum()
         result['pop_femmes_65_plus'] = (f_65p * intersected['surface_ratio']).sum()
-        
+
+        # Population 0-64 ans (population totale - 65+)
+        result['pop_0_64'] = max(0, result['pop_totale'] - result['pop_65_plus'])
+
         # Taux retraites (si colonnes disponibles)
         pop_55p = intersected.get('P22_POP55P', pd.Series([0]*len(intersected))).fillna(0)
         retraites_55p = intersected.get('C22_POP55P_STAT_GSEC32', pd.Series([0]*len(intersected))).fillna(0)
@@ -498,6 +501,7 @@ class PopulationProcessor:
             'pop_femmes_75_84': 0,
             'pop_femmes_85_plus': 0,
             'pop_femmes_65_plus': 0,
+            'pop_0_64': 0,
             'taux_retraites': 0,
             'taux_cadres': 0,
         }

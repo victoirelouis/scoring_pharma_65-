@@ -1,18 +1,18 @@
 ================================================================================
 RAPPORT D'INTÉGRATION COMPLÈTE
 ================================================================================
-Date : 2025-11-12 14:08:47
+Date : 2025-11-17 09:12:43
 
 STATISTIQUES GÉNÉRALES
 --------------------------------------------------------------------------------
 Nombre de pharmacies : 19,307
-Nombre de variables totales : 99
+Nombre de variables totales : 262
 
 DÉCOMPTE PAR CATÉGORIE DE VARIABLES
 --------------------------------------------------------------------------------
-  Hubs                 :  14 variables
-  Concurrence          :   3 variables
-  Population           :  31 variables
+  Hubs                 :  42 variables
+  Concurrence          :   8 variables
+  Population           :  92 variables
   Tourisme             :   0 variables
   Base                 :   8 variables
 
@@ -44,12 +44,6 @@ Pharmacies concurrentes (drive 10min) :
   Médiane : 16.00
   Min : 0.00
   Max : 589.00
-
-Distance pharmacie la plus proche (km) :
-  Moyenne : 1.75
-  Médiane : 0.55
-  Min : 0.00
-  Max : 20.00
 
 ================================================================================
 FIN DU RAPPORT

@@ -122,55 +122,157 @@ class IntegrationProcessor:
     def create_derived_features(self):
         """Crée des features dérivées utiles pour le ML"""
         logger.info("Création de features dérivées...")
-        
-        # Ratios population par isochrone
-        if 'pop_65_plus_walk_5min' in self.df_master.columns and 'pop_totale_walk_5min' in self.df_master.columns:
-            self.df_master['ratio_seniors_walk_5min'] = (
-                self.df_master['pop_65_plus_walk_5min'] / 
-                self.df_master['pop_totale_walk_5min'].replace(0, np.nan)
-            ).fillna(0)
-            logger.info("   OK ratio_seniors_walk_5min")
-        
-        if 'pop_65_plus_drive_10min' in self.df_master.columns and 'pop_totale_drive_10min' in self.df_master.columns:
-            self.df_master['ratio_seniors_drive_10min'] = (
-                self.df_master['pop_65_plus_drive_10min'] / 
-                self.df_master['pop_totale_drive_10min'].replace(0, np.nan)
-            ).fillna(0)
-            logger.info("   OK ratio_seniors_drive_10min")
-        
-        # Ratio femmes/hommes 65+
-        if 'pop_femmes_65_plus_walk_5min' in self.df_master.columns and 'pop_hommes_65_plus_walk_5min' in self.df_master.columns:
-            self.df_master['ratio_femmes_hommes_65_walk_5min'] = (
-                self.df_master['pop_femmes_65_plus_walk_5min'] / 
-                self.df_master['pop_hommes_65_plus_walk_5min'].replace(0, np.nan)
-            ).fillna(1.0)
-            logger.info("   OK ratio_femmes_hommes_65_walk_5min")
-        
-        # Densité hubs par 1000 habitants 65+
-        if 'nb_sante_generale_walk_5min' in self.df_master.columns and 'pop_65_plus_walk_5min' in self.df_master.columns:
-            self.df_master['densite_hubs_sante_par_1000_seniors_walk'] = (
-                self.df_master['nb_sante_generale_walk_5min'] * 1000 / 
-                self.df_master['pop_65_plus_walk_5min'].replace(0, np.nan)
-            ).fillna(0)
-            logger.info("   OK densite_hubs_sante_par_1000_seniors_walk")
-        
-        # Ratio concurrence / population
-        if 'nb_pharmacies_concurrentes_drive_10min' in self.df_master.columns and 'pop_65_plus_drive_10min' in self.df_master.columns:
-            self.df_master['concurrence_par_1000_seniors_drive'] = (
-                self.df_master['nb_pharmacies_concurrentes_drive_10min'] * 1000 / 
-                self.df_master['pop_65_plus_drive_10min'].replace(0, np.nan)
-            ).fillna(0)
-            logger.info("   OK concurrence_par_1000_seniors_drive")
-        
-        # Indicateur zone isolée (peu de concurrence + loin de la plus proche)
+        features_count = 0
+
+        # ===================================================================
+        # 1. RATIOS POPULATION PAR TRANCHE D'ÂGE (pour les 2 isochrones clés)
+        # ===================================================================
+        logger.info("1. Ratios population par tranche d'age...")
+
+        for iso in ['walk_5min', 'drive_10min']:
+            pop_tot = f'pop_totale_{iso}'
+
+            # Ratio 0-64 ans / population totale
+            if f'pop_0_64_{iso}' in self.df_master.columns and pop_tot in self.df_master.columns:
+                self.df_master[f'ratio_0_64_{iso}'] = (
+                    self.df_master[f'pop_0_64_{iso}'] /
+                    self.df_master[pop_tot].replace(0, np.nan)
+                ).fillna(0)
+                features_count += 1
+
+            # Ratio 65+ / population totale
+            if f'pop_65_plus_{iso}' in self.df_master.columns and pop_tot in self.df_master.columns:
+                self.df_master[f'ratio_65_plus_{iso}'] = (
+                    self.df_master[f'pop_65_plus_{iso}'] /
+                    self.df_master[pop_tot].replace(0, np.nan)
+                ).fillna(0)
+                features_count += 1
+
+            # Ratio 65-74 / 65+
+            if f'pop_65_74_{iso}' in self.df_master.columns and f'pop_65_plus_{iso}' in self.df_master.columns:
+                self.df_master[f'ratio_65_74_sur_65plus_{iso}'] = (
+                    self.df_master[f'pop_65_74_{iso}'] /
+                    self.df_master[f'pop_65_plus_{iso}'].replace(0, np.nan)
+                ).fillna(0)
+                features_count += 1
+
+            # Ratio 75-84 / 65+
+            if f'pop_75_84_{iso}' in self.df_master.columns and f'pop_65_plus_{iso}' in self.df_master.columns:
+                self.df_master[f'ratio_75_84_sur_65plus_{iso}'] = (
+                    self.df_master[f'pop_75_84_{iso}'] /
+                    self.df_master[f'pop_65_plus_{iso}'].replace(0, np.nan)
+                ).fillna(0)
+                features_count += 1
+
+            # Ratio 85+ / 65+ (grands seniors - fort consommateurs pharmacie)
+            if f'pop_85_plus_{iso}' in self.df_master.columns and f'pop_65_plus_{iso}' in self.df_master.columns:
+                self.df_master[f'ratio_85_plus_sur_65plus_{iso}'] = (
+                    self.df_master[f'pop_85_plus_{iso}'] /
+                    self.df_master[f'pop_65_plus_{iso}'].replace(0, np.nan)
+                ).fillna(0)
+                features_count += 1
+
+            # Ratio femmes/hommes 65+ (femmes consomment plus de pharmacie)
+            if f'pop_femmes_65_plus_{iso}' in self.df_master.columns and f'pop_hommes_65_plus_{iso}' in self.df_master.columns:
+                self.df_master[f'ratio_femmes_hommes_65plus_{iso}'] = (
+                    self.df_master[f'pop_femmes_65_plus_{iso}'] /
+                    self.df_master[f'pop_hommes_65_plus_{iso}'].replace(0, np.nan)
+                ).fillna(1.0)
+                features_count += 1
+
+        logger.info(f"   -> {features_count} ratios population créés")
+
+        # ===================================================================
+        # 2. DENSITÉS SERVICES DE SANTÉ PAR POPULATION
+        # ===================================================================
+        logger.info("2. Densités services de santé par population...")
+        density_count = 0
+
+        for iso in ['walk_5min', 'drive_10min']:
+            # Densité hubs santé par 1000 seniors
+            if f'nb_sante_generale_{iso}' in self.df_master.columns and f'pop_65_plus_{iso}' in self.df_master.columns:
+                self.df_master[f'densite_hubs_sante_par_1000_seniors_{iso}'] = (
+                    self.df_master[f'nb_sante_generale_{iso}'] * 1000 /
+                    self.df_master[f'pop_65_plus_{iso}'].replace(0, np.nan)
+                ).fillna(0)
+                density_count += 1
+
+            # Densité médecins par 1000 seniors
+            if f'nb_medecin_generaliste_{iso}' in self.df_master.columns and f'pop_65_plus_{iso}' in self.df_master.columns:
+                self.df_master[f'densite_medecins_par_1000_seniors_{iso}'] = (
+                    self.df_master[f'nb_medecin_generaliste_{iso}'] * 1000 /
+                    self.df_master[f'pop_65_plus_{iso}'].replace(0, np.nan)
+                ).fillna(0)
+                density_count += 1
+
+            # Densité EHPAD par 1000 grands seniors (85+)
+            if f'nb_ehpad_{iso}' in self.df_master.columns and f'pop_85_plus_{iso}' in self.df_master.columns:
+                self.df_master[f'densite_ehpad_par_1000_85plus_{iso}'] = (
+                    self.df_master[f'nb_ehpad_{iso}'] * 1000 /
+                    self.df_master[f'pop_85_plus_{iso}'].replace(0, np.nan)
+                ).fillna(0)
+                density_count += 1
+
+        logger.info(f"   -> {density_count} densités créées")
+
+        # ===================================================================
+        # 3. RATIOS CONCURRENCE / POPULATION
+        # ===================================================================
+        logger.info("3. Ratios concurrence / population...")
+        concurrence_count = 0
+
+        for iso in ['walk_5min', 'drive_10min']:
+            # Concurrence par 1000 seniors
+            if f'nb_pharmacies_concurrentes_{iso}' in self.df_master.columns and f'pop_65_plus_{iso}' in self.df_master.columns:
+                self.df_master[f'concurrence_par_1000_seniors_{iso}'] = (
+                    self.df_master[f'nb_pharmacies_concurrentes_{iso}'] * 1000 /
+                    self.df_master[f'pop_65_plus_{iso}'].replace(0, np.nan)
+                ).fillna(0)
+                concurrence_count += 1
+
+            # Concurrence par 1000 habitants totaux
+            if f'nb_pharmacies_concurrentes_{iso}' in self.df_master.columns and f'pop_totale_{iso}' in self.df_master.columns:
+                self.df_master[f'concurrence_par_1000_habitants_{iso}'] = (
+                    self.df_master[f'nb_pharmacies_concurrentes_{iso}'] * 1000 /
+                    self.df_master[f'pop_totale_{iso}'].replace(0, np.nan)
+                ).fillna(0)
+                concurrence_count += 1
+
+        logger.info(f"   -> {concurrence_count} ratios concurrence créés")
+
+        # ===================================================================
+        # 4. INDICATEURS CATÉGORIELS
+        # ===================================================================
+        logger.info("4. Indicateurs catégoriels...")
+        indicateurs_count = 0
+
+        # Zone isolée (peu de concurrence + loin de la plus proche)
         if 'nb_pharmacies_concurrentes_drive_10min' in self.df_master.columns and 'distance_pharmacie_plus_proche' in self.df_master.columns:
             self.df_master['zone_isolee'] = (
-                (self.df_master['nb_pharmacies_concurrentes_drive_10min'] <= 2) & 
+                (self.df_master['nb_pharmacies_concurrentes_drive_10min'] <= 2) &
                 (self.df_master['distance_pharmacie_plus_proche'] > 5.0)
             ).astype(int)
-            logger.info("   OK zone_isolee")
-        
-        logger.info(f"Features dérivées créées : {len(self.df_master.columns)} colonnes totales")
+            indicateurs_count += 1
+
+        # Zone très senior (>30% de 65+)
+        if 'ratio_65_plus_drive_10min' in self.df_master.columns:
+            self.df_master['zone_tres_senior'] = (
+                self.df_master['ratio_65_plus_drive_10min'] > 0.30
+            ).astype(int)
+            indicateurs_count += 1
+
+        # Zone grands seniors (>40% de 85+ parmi les 65+)
+        if 'ratio_85_plus_sur_65plus_drive_10min' in self.df_master.columns:
+            self.df_master['zone_grands_seniors'] = (
+                self.df_master['ratio_85_plus_sur_65plus_drive_10min'] > 0.40
+            ).astype(int)
+            indicateurs_count += 1
+
+        logger.info(f"   -> {indicateurs_count} indicateurs créés")
+
+        total_features = features_count + density_count + concurrence_count + indicateurs_count
+        logger.info(f"\nTOTAL: {total_features} features dérivées créées")
+        logger.info(f"Nombre total de colonnes: {len(self.df_master.columns)}")
     
     def clean_data(self):
         """Nettoyage final des données"""

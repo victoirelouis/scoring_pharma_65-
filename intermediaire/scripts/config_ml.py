@@ -73,9 +73,10 @@ INTERMEDIATE_FILES = {
     'pharmacies_avec_hubs': DATA_INTERMEDIATE_DIR / 'pharmacies_avec_hubs.csv',
     'pharmacies_avec_concurrence': DATA_INTERMEDIATE_DIR / 'pharmacies_avec_concurrence.csv',
     'pharmacies_avec_population_isochrones': DATA_INTERMEDIATE_DIR / 'pharmacies_avec_population_isochrones.csv',
-    'pharmacies_features_complet': DATA_INTERMEDIATE_DIR / 'pharmacies_features_complet.csv',
+    'pharmacies_features_complet': DATA_INTERMEDIATE_DIR / 'pharmacies_features_complet_clean.csv',  # Version nettoyée
     'pharmacies_features_engineered': DATA_INTERMEDIATE_DIR / 'pharmacies_features_engineered.csv',
     'pharmacies_features_selected': DATA_INTERMEDIATE_DIR / 'pharmacies_features_selected.csv',
+    'pharmacies_avec_scores_attractivite': DATA_INTERMEDIATE_DIR / 'pharmacies_avec_scores_attractivite.csv',  # Ajouté pour script 5
     'data_ml_complete': DATA_INTERMEDIATE_DIR / 'data_ml_complete.csv',
     'data_ml_features': DATA_INTERMEDIATE_DIR / 'data_ml_features.csv',
 }

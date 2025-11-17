@@ -1,0 +1,50 @@
+================================================================================
+RAPPORT DE NETTOYAGE DES DONNEES
+================================================================================
+
+Données initiales: 19,307 pharmacies x 262 colonnes
+
+1. VALEURS MANQUANTES
+--------------------------------------------------------------------------------
+   Pharmacies avec coordonnées manquantes: 11
+   -> SUPPRESSION de 11 pharmacies sans coordonnées
+   OK 11 lignes supprimées
+
+2. INCOHERENCES ISOCHRONES
+--------------------------------------------------------------------------------
+   Cas où pop_walk_5min > pop_drive_10min: 18
+   -> CORRECTION: drive_10min = max(walk_5min, drive_10min)
+   OK 252 valeurs corrigées
+
+3. VALEURS NEGATIVES
+--------------------------------------------------------------------------------
+   OK Aucune valeur négative détectée
+
+4. VALEURS INFINIES
+--------------------------------------------------------------------------------
+   OK Aucune valeur infinie détectée
+
+5. IMPUTATION DES NaN
+--------------------------------------------------------------------------------
+   OK Aucun NaN détecté
+
+6. DOUBLONS
+--------------------------------------------------------------------------------
+   Doublons sur id_pharmacie: 0
+   OK Aucun doublon
+
+7. STATISTIQUES FINALES
+--------------------------------------------------------------------------------
+   Pharmacies initiales: 19,307
+   Pharmacies après nettoyage: 19,296
+   Pharmacies supprimées: 11 (0.06%)
+   Variables: 262
+
+   Vérification finale:
+   - Valeurs manquantes: 0
+   - Valeurs infinies: 0
+   - Doublons: 0
+
+================================================================================
+NETTOYAGE TERMINE
+================================================================================

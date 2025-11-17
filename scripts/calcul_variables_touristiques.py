@@ -15,8 +15,11 @@ Date: 10/11/2025
 import pandas as pd
 import geopandas as gpd
 import json
+import os
+import time
 from pathlib import Path
 from shapely.geometry import Point, shape
+from shapely.strtree import STRtree
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import numpy as np
 from tqdm import tqdm
@@ -57,7 +60,7 @@ def charger_hebergements():
     Charge et nettoie le fichier des hébergements classés
     Retourne un GeoDataFrame avec les hébergements géocodés
     """
-    print("\n📂 Chargement des hébergements classés...")
+    print("\n[DATA] Chargement des hébergements classés...")
     
     # Charger le CSV avec le bon séparateur
     hebergements = pd.read_csv(
@@ -117,11 +120,11 @@ def charger_hebergements():
     
     print(f"   - {hebergements['est_hotel'].sum():,} hôtels")
     print(f"   - {hebergements['est_camping'].sum():,} campings")
-    print(f"   - {hebergements['est_premium'].sum():,} hôtels premium (4-5★)")
+    print(f"   - {hebergements['est_premium'].sum():,} hôtels premium (4-5*)")
     print(f"   - {hebergements['capacite'].sum():,} places d'accueil total")
     
     # Géocoder les adresses via l'API BAN
-    print("\n🗺️  Géocodage des hébergements en cours...")
+    print("\n[MAP]  Géocodage des hébergements en cours...")
     hebergements_geo = geocoder_hebergements_batch(hebergements)
     
     return hebergements_geo
@@ -154,33 +157,46 @@ def geocoder_hebergements_batch(hebergements, batch_size=1000):
         batch.to_csv(csv_buffer, index=False)
         csv_content = csv_buffer.getvalue()
         
-        # Appel API BAN
-        try:
-            response = requests.post(
-                'https://api-adresse.data.gouv.fr/search/csv/',
-                files={'data': ('addresses.csv', csv_content)},
-                data={'columns': 'adresse'}
-            )
-            
-            if response.status_code == 200:
-                result = pd.read_csv(io.StringIO(response.text))
-                
-                # Extraire latitude et longitude
-                for _, row in result.iterrows():
-                    if pd.notna(row.get('latitude')) and pd.notna(row.get('longitude')):
-                        geometries.append(Point(row['longitude'], row['latitude']))
-                    else:
-                        geometries.append(None)
-            else:
-                # En cas d'erreur, ajouter des None
-                geometries.extend([None] * len(batch))
-            
-            # Pause pour respecter les limites de l'API
-            time.sleep(0.5)
-            
-        except Exception as e:
-            print(f"\n   ⚠️  Erreur batch {i}: {e}")
+        # Appel API BAN avec retry
+        success = False
+        for attempt in range(3):  # 3 tentatives max
+            try:
+                response = requests.post(
+                    'https://api-adresse.data.gouv.fr/search/csv/',
+                    files={'data': ('addresses.csv', csv_content)},
+                    data={'columns': 'adresse'},
+                    timeout=30
+                )
+
+                if response.status_code == 200:
+                    result = pd.read_csv(io.StringIO(response.text))
+
+                    # Extraire latitude et longitude
+                    for _, row in result.iterrows():
+                        if pd.notna(row.get('latitude')) and pd.notna(row.get('longitude')):
+                            geometries.append(Point(row['longitude'], row['latitude']))
+                        else:
+                            geometries.append(None)
+                    success = True
+                    break
+                else:
+                    if attempt < 2:
+                        time.sleep(2)
+                    continue
+
+            except Exception as e:
+                if attempt < 2:
+                    print(f"\n   [WARN] Erreur batch {i} (tentative {attempt+1}/3): {str(e)[:100]}")
+                    time.sleep(3)  # Pause plus longue avant retry
+                else:
+                    print(f"\n   [ERROR] Echec definitif batch {i}: {str(e)[:100]}")
+
+        # Si toutes les tentatives ont échoué
+        if not success:
             geometries.extend([None] * len(batch))
+
+        # Pause pour respecter les limites de l'API
+        time.sleep(0.5)
     
     # Créer le GeoDataFrame
     hebergements['geometry'] = geometries
@@ -190,7 +206,7 @@ def geocoder_hebergements_batch(hebergements, batch_size=1000):
         crs='EPSG:4326'
     )
     
-    print(f"   ✓ {len(gdf):,} hébergements géocodés ({len(gdf)/len(hebergements)*100:.1f}%)")
+    print(f"   OK {len(gdf):,} hébergements géocodés ({len(gdf)/len(hebergements)*100:.1f}%)")
     
     return gdf
 
@@ -200,7 +216,7 @@ def charger_communes_loi_montagne():
     Charge la liste des communes concernées par la loi montagne
     Retourne un set de codes INSEE
     """
-    print("\n🏔️  Chargement des communes loi montagne...")
+    print("\n[MTN]  Chargement des communes loi montagne...")
     
     df = pd.read_excel(
         FICHIER_LOI_MONTAGNE,
@@ -219,7 +235,7 @@ def charger_communes_loi_littorale():
     Charge la liste des communes concernées par la loi littoral
     Retourne un DataFrame avec code INSEE et type (Mer, Lac, Estuaire)
     """
-    print("\n🌊 Chargement des communes loi littoral...")
+    print("\n[SEA] Chargement des communes loi littoral...")
     
     df = pd.read_excel(
         FICHIER_LOI_LITTORALE,
@@ -245,7 +261,7 @@ def charger_pharmacies():
     """
     Charge le fichier des pharmacies
     """
-    print("\n💊 Chargement des pharmacies...")
+    print("\n[PHARMA] Chargement des pharmacies...")
     
     pharmacies = pd.read_csv(FICHIER_PHARMACIES, encoding='utf-8')
     
@@ -293,14 +309,14 @@ def calculer_variables_pharmacie(args):
     """
     Calcule toutes les variables touristiques pour une pharmacie
     Fonction appelée en parallèle
-    
+
     Args:
-        args: tuple (pharmacie_row, hebergements_gdf, communes_montagne, communes_littoral)
-    
+        args: tuple (pharmacie_row, hebergements_gdf, spatial_index, communes_montagne, communes_littoral)
+
     Returns:
         dict avec toutes les variables calculées
     """
-    pharmacie, hebergements_gdf, communes_montagne, communes_littoral = args
+    pharmacie, hebergements_gdf, spatial_index, communes_montagne, communes_littoral = args
     
     id_pharmacie = pharmacie['id_pharmacie']
     code_commune = str(pharmacie.get('code_postal', ''))[:5]  # Premiers 5 chiffres du code postal
@@ -345,7 +361,7 @@ def calculer_variables_pharmacie(args):
     # VARIABLES PAR ISOCHRONE
     # ========================================================================
     
-    for type_iso in ['walk_5min', 'drive_10min']:
+    for type_iso in ['walk_5min', 'walk_10min', 'drive_5min', 'drive_10min', 'drive_15min', 'drive_20min']:
         
         # Charger le polygone de l'isochrone
         polygone_iso = charger_isochrone(id_pharmacie, type_iso)
@@ -360,11 +376,18 @@ def calculer_variables_pharmacie(args):
             resultat[f'nb_total_hebergements_{type_iso}'] = 0
             continue
         
-        # Filtrer les hébergements qui intersectent l'isochrone
-        hebergements_dans_iso = hebergements_gdf[
-            hebergements_gdf.geometry.within(polygone_iso) |
-            hebergements_gdf.geometry.intersects(polygone_iso)
-        ]
+        # Filtrer les hébergements qui intersectent l'isochrone (OPTIMISÉ avec STRtree)
+        # Étape 1 : Requête spatiale rapide avec l'index (O(log n))
+        potential_indices = list(spatial_index.query(polygone_iso))
+
+        # Étape 2 : Filtrer seulement les candidats (beaucoup moins que 21,060)
+        if len(potential_indices) > 0:
+            hebergements_candidats = hebergements_gdf.iloc[potential_indices]
+            hebergements_dans_iso = hebergements_candidats[
+                hebergements_candidats.geometry.intersects(polygone_iso)
+            ]
+        else:
+            hebergements_dans_iso = hebergements_gdf.iloc[0:0]  # DataFrame vide
         
         # Calculer les variables
         resultat[f'nb_hotels_{type_iso}'] = int(hebergements_dans_iso['est_hotel'].sum())
@@ -422,11 +445,11 @@ def calculer_variables_pharmacie(args):
 # TRAITEMENT PRINCIPAL AVEC PARALLÉLISATION
 # ============================================================================
 
-def traiter_pharmacies_par_batch(pharmacies, hebergements_gdf, communes_montagne, 
+def traiter_pharmacies_par_batch(pharmacies, hebergements_gdf, communes_montagne,
                                   communes_littoral, n_workers=8, batch_size=500):
     """
     Traite toutes les pharmacies en parallèle avec affichage de progression
-    
+
     Args:
         pharmacies: DataFrame des pharmacies
         hebergements_gdf: GeoDataFrame des hébergements
@@ -434,44 +457,76 @@ def traiter_pharmacies_par_batch(pharmacies, hebergements_gdf, communes_montagne
         communes_littoral: dict des codes INSEE littoral -> type
         n_workers: nombre de processus parallèles
         batch_size: taille des batchs
-    
+
     Returns:
         DataFrame avec toutes les variables calculées
     """
-    print(f"\n🚀 Traitement parallèle avec {n_workers} workers (batch size: {batch_size})...")
-    
+    print(f"\n[START] Traitement parallele avec {n_workers} workers (batch size: {batch_size})...")
+
+    # OPTIMISATION : Créer l'index spatial STRtree une seule fois
+    print(f"[OPTIM] Construction index spatial STRtree pour {len(hebergements_gdf):,} hebergements...")
+    temps_index_debut = time.time()
+    spatial_index = STRtree(hebergements_gdf.geometry)
+    temps_index = time.time() - temps_index_debut
+    print(f"[OPTIM] Index spatial cree en {temps_index:.1f}s - Gain attendu: 10-50x sur les requetes spatiales")
+
     # Préparer les arguments pour chaque pharmacie
     args_list = [
-        (row, hebergements_gdf, communes_montagne, communes_littoral)
+        (row, hebergements_gdf, spatial_index, communes_montagne, communes_littoral)
         for _, row in pharmacies.iterrows()
     ]
     
     resultats = []
-    
+
+    # Fichier checkpoint
+    fichier_checkpoint = os.path.join(
+        os.path.dirname(__file__),
+        '..',
+        'intermediaire',
+        'output',
+        'checkpoint_variables_touristiques.csv'
+    )
+
     # Traiter par batch avec ProcessPoolExecutor
     total_pharmacies = len(args_list)
-    
+    compteur = 0
+    temps_debut = time.time()
+
     with ProcessPoolExecutor(max_workers=n_workers) as executor:
         # Soumettre tous les jobs
         futures = [
             executor.submit(calculer_variables_pharmacie, args)
             for args in args_list
         ]
-        
+
         # Collecter les résultats avec barre de progression
         for future in tqdm(as_completed(futures), total=total_pharmacies, desc="   Calcul"):
             try:
                 resultat = future.result()
                 resultats.append(resultat)
+                compteur += 1
+
+                # Checkpoint tous les 1000 pharmacies
+                if compteur % 1000 == 0:
+                    df_checkpoint = pd.DataFrame(resultats)
+                    df_checkpoint.to_csv(fichier_checkpoint, index=False)
+
+                    temps_ecoule = time.time() - temps_debut
+                    vitesse = compteur / (temps_ecoule / 60)  # pharmacies par minute
+                    temps_restant = (total_pharmacies - compteur) / vitesse if vitesse > 0 else 0
+
+                    print(f"\n   [SAVE] Checkpoint : {compteur:,}/{total_pharmacies:,} pharmacies ({compteur/total_pharmacies*100:.1f}%)")
+                    print(f"   Vitesse : {vitesse:.1f} pharm/min - Temps restant : {temps_restant:.1f} min (~{temps_restant/60:.1f}h)")
+
             except Exception as e:
-                print(f"\n   ⚠️  Erreur: {e}")
+                print(f"\n   [WARN] Erreur: {e}")
     
     # Convertir en DataFrame
     df_resultats = pd.DataFrame(resultats)
     
     # Réordonner les colonnes de manière logique
     colonnes_ordre = ['id_pharmacie']
-    
+
     # Variables de contexte communal
     colonnes_ordre.extend([
         'flag_commune_montagne',
@@ -482,36 +537,29 @@ def traiter_pharmacies_par_batch(pharmacies, hebergements_gdf, communes_montagne
         'flag_commune_mixte',
         'type_zone_touristique'
     ])
-    
-    # Variables walk_5min
-    colonnes_ordre.extend([
-        'nb_hotels_walk_5min',
-        'nb_campings_walk_5min',
-        'nb_residences_walk_5min',
-        'nb_hotels_premium_walk_5min',
-        'capacite_accueil_walk_5min',
-        'nb_total_hebergements_walk_5min'
-    ])
-    
-    # Variables drive_10min
-    colonnes_ordre.extend([
-        'nb_hotels_drive_10min',
-        'nb_campings_drive_10min',
-        'nb_residences_drive_10min',
-        'nb_hotels_premium_drive_10min',
-        'capacite_accueil_drive_10min',
-        'nb_total_hebergements_drive_10min'
-    ])
-    
+
+    # Variables pour chaque isochrone (6 isochrones)
+    for iso in ['walk_5min', 'walk_10min', 'drive_5min', 'drive_10min', 'drive_15min', 'drive_20min']:
+        colonnes_ordre.extend([
+            f'nb_hotels_{iso}',
+            f'nb_campings_{iso}',
+            f'nb_residences_{iso}',
+            f'nb_hotels_premium_{iso}',
+            f'capacite_accueil_{iso}',
+            f'nb_total_hebergements_{iso}'
+        ])
+
     # Variables combinées
     colonnes_ordre.extend([
         'ratio_walk_drive_capacite',
         'densite_touristique_walk_5'
     ])
+
+    # Garder seulement les colonnes qui existent
+    colonnes_existantes = [col for col in colonnes_ordre if col in df_resultats.columns]
+    df_resultats = df_resultats[colonnes_existantes]
     
-    df_resultats = df_resultats[colonnes_ordre]
-    
-    print(f"\n✓ {len(df_resultats):,} pharmacies traitées avec succès")
+    print(f"\nOK {len(df_resultats):,} pharmacies traitées avec succès")
     
     return df_resultats
 
@@ -563,9 +611,9 @@ def main():
     # EXPORT
     # ========================================================================
     
-    print(f"\n💾 Export des résultats...")
+    print(f"\n[SAVE] Export des résultats...")
     df_variables.to_csv(FICHIER_OUTPUT, index=False, encoding='utf-8')
-    print(f"   ✓ Fichier sauvegardé : {FICHIER_OUTPUT}")
+    print(f"   OK Fichier sauvegardé : {FICHIER_OUTPUT}")
     
     # ========================================================================
     # STATISTIQUES DESCRIPTIVES
@@ -575,30 +623,30 @@ def main():
     print("STATISTIQUES DESCRIPTIVES")
     print("=" * 80)
     
-    print("\n📊 Contexte communal:")
+    print("\n[STATS] Contexte communal:")
     print(f"   - Pharmacies en zone montagne : {df_variables['flag_commune_montagne'].sum():,}")
     print(f"   - Pharmacies en zone littoral : {df_variables['flag_commune_littoral'].sum():,}")
     print(f"   - Pharmacies en zone mixte : {df_variables['flag_commune_mixte'].sum():,}")
     
-    print("\n📊 Typologie touristique:")
+    print("\n[STATS] Typologie touristique:")
     print(df_variables['type_zone_touristique'].value_counts())
     
-    print("\n📊 Hébergements dans walk_5min:")
+    print("\n[STATS] Hébergements dans walk_5min:")
     print(f"   - Moyenne hôtels : {df_variables['nb_hotels_walk_5min'].mean():.1f}")
     print(f"   - Moyenne campings : {df_variables['nb_campings_walk_5min'].mean():.1f}")
     print(f"   - Moyenne capacité : {df_variables['capacite_accueil_walk_5min'].mean():.0f} places")
     
-    print("\n📊 Hébergements dans drive_10min:")
+    print("\n[STATS] Hébergements dans drive_10min:")
     print(f"   - Moyenne hôtels : {df_variables['nb_hotels_drive_10min'].mean():.1f}")
     print(f"   - Moyenne campings : {df_variables['nb_campings_drive_10min'].mean():.1f}")
     print(f"   - Moyenne capacité : {df_variables['capacite_accueil_drive_10min'].mean():.0f} places")
     
-    print("\n📊 Ratios:")
+    print("\n[STATS] Ratios:")
     print(f"   - Ratio walk/drive moyen : {df_variables['ratio_walk_drive_capacite'].mean():.3f}")
     print(f"   - Densité touristique walk_5 moyenne : {df_variables['densite_touristique_walk_5'].mean():.1f} places/km²")
     
     print("\n" + "=" * 80)
-    print("✅ TRAITEMENT TERMINÉ AVEC SUCCÈS")
+    print("OK TRAITEMENT TERMINÉ AVEC SUCCÈS")
     print("=" * 80)
 
 
