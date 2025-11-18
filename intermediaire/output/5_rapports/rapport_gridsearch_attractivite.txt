@@ -1,0 +1,183 @@
+================================================================================
+RAPPORT - SCORE D'ATTRACTIVITÉ (LightGBM + GridSearch)
+================================================================================
+Date : 2025-11-17 13:24:35
+Nombre de pharmacies : 19,296
+Nombre de features : 252
+
+MEILLEURS HYPERPARAMÈTRES (GridSearch)
+--------------------------------------------------------------------------------
+
+
+MODÈLE : CA_ETHIQUE
+--------------------------------------------------------------------------------
+Train set : 15,436 pharmacies
+Test set  : 3,860 pharmacies
+
+R² train  : 0.3755
+R² test   : 0.1943
+MAE train : 519,816 €
+MAE test  : 576,320 €
+RMSE train: 712,119 €
+RMSE test : 806,151 €
+Overfitting: 0.1812
+  ⚠️  Overfitting détecté
+
+Importance par tranche d'âge :
+  pop_0_64                       : 305.0
+  pop_65_74                      : 98.0
+  pop_75_84                      : 103.0
+  pop_85_plus                    : 214.0
+  pop_65_plus                    : 69.0
+
+📊 Part estimée des seniors (65+) dans le CA : 57.6%
+
+Top 15 features importantes :
+   1. distance_pharmacie_plus_proche_x                   : 776
+   2. concurrence_par_1000_habitants_drive_10min         : 512
+   3. nb_supermarche_walk_10min                          : 443
+   4. taux_cadres_walk_10min                             : 375
+   5. concurrence_par_1000_seniors_drive_10min           : 358
+   6. nb_pharmacies_concurrentes_drive_5min              : 327
+   7. nb_supermarche_drive_5min                          : 272
+   8. nb_pharmacies_concurrentes_walk_10min              : 262
+   9. ratio_femmes_hommes_65plus_walk_5min               : 262
+  10. ratio_85_plus_sur_65plus_walk_5min                 : 254
+  11. nb_sante_generale_drive_5min                       : 250
+  12. nb_laboratoire_walk_5min                           : 247
+  13. nb_hubs_brut_walk_5min                             : 239
+  14. nb_sante_generale_walk_5min                        : 222
+  15. ratio_85_plus_sur_65plus_drive_10min               : 209
+
+MODÈLE : CA_CONSEIL
+--------------------------------------------------------------------------------
+Train set : 15,436 pharmacies
+Test set  : 3,860 pharmacies
+
+R² train  : 0.1978
+R² test   : 0.0214
+MAE train : 292,526 €
+MAE test  : 334,933 €
+RMSE train: 839,370 €
+RMSE test : 1,514,337 €
+Overfitting: 0.1764
+  ⚠️  Overfitting détecté
+
+Importance par tranche d'âge :
+  pop_0_64                       : 189.0
+  pop_65_74                      : 20.0
+  pop_75_84                      : 60.0
+  pop_85_plus                    : 134.0
+  pop_65_plus                    : 43.0
+
+📊 Part estimée des seniors (65+) dans le CA : 53.1%
+
+Top 15 features importantes :
+   1. distance_pharmacie_plus_proche_x                   : 397
+   2. nb_supermarche_walk_10min                          : 362
+   3. concurrence_par_1000_seniors_drive_10min           : 269
+   4. densite_hubs_sante_par_1000_seniors_walk_5min      : 235
+   5. concurrence_par_1000_habitants_drive_10min         : 195
+   6. ratio_75_84_sur_65plus_drive_10min                 : 193
+   7. nb_sante_generale_walk_5min                        : 178
+   8. nb_sante_generale_drive_5min                       : 163
+   9. ratio_85_plus_sur_65plus_walk_5min                 : 154
+  10. densite_touristique_walk_5                         : 142
+  11. ratio_femmes_hommes_65plus_walk_5min               : 139
+  12. nb_medecin_walk_10min                              : 135
+  13. nb_bus_drive_5min                                  : 132
+  14. taux_cadres_walk_5min                              : 131
+  15. nb_hotels_premium_walk_5min                        : 131
+
+MODÈLE : DELTA
+--------------------------------------------------------------------------------
+Train set : 15,436 pharmacies
+Test set  : 3,860 pharmacies
+
+R² train  : 0.2835
+R² test   : 0.1184
+MAE train : 84,389 €
+MAE test  : 91,626 €
+RMSE train: 155,192 €
+RMSE test : 152,768 €
+Overfitting: 0.1650
+  ⚠️  Overfitting détecté
+
+Importance par tranche d'âge :
+  pop_0_64                       : 262.0
+  pop_65_74                      : 92.0
+  pop_75_84                      : 92.0
+  pop_85_plus                    : 176.0
+  pop_65_plus                    : 72.0
+
+📊 Part estimée des seniors (65+) dans le CA : 57.9%
+
+Top 15 features importantes :
+   1. distance_pharmacie_plus_proche_x                   : 601
+   2. concurrence_par_1000_habitants_drive_10min         : 542
+   3. nb_supermarche_walk_10min                          : 387
+   4. taux_cadres_walk_10min                             : 385
+   5. nb_hubs_brut_walk_10min                            : 306
+   6. nb_services_seniors_drive_5min                     : 280
+   7. nb_sante_generale_drive_5min                       : 271
+   8. ratio_65_74_sur_65plus_drive_10min                 : 269
+   9. nb_sante_generale_walk_5min                        : 256
+  10. ratio_femmes_hommes_65plus_walk_5min               : 253
+  11. nb_hubs_brut_walk_5min                             : 238
+  12. ratio_85_plus_sur_65plus_walk_5min                 : 236
+  13. nb_laboratoire_walk_5min                           : 233
+  14. nb_pharmacies_concurrentes_walk_10min              : 219
+  15. ratio_85_plus_sur_65plus_drive_10min               : 216
+
+MODÈLE : CA_TOTAL
+--------------------------------------------------------------------------------
+Train set : 15,436 pharmacies
+Test set  : 3,860 pharmacies
+
+R² train  : 0.2888
+R² test   : 0.0657
+MAE train : 843,802 €
+MAE test  : 945,484 €
+RMSE train: 1,420,084 €
+RMSE test : 2,111,140 €
+Overfitting: 0.2231
+  ⚠️  Overfitting détecté
+
+Importance par tranche d'âge :
+  pop_0_64                       : 368.0
+  pop_65_74                      : 139.0
+  pop_75_84                      : 103.0
+  pop_85_plus                    : 192.0
+  pop_65_plus                    : 81.0
+
+📊 Part estimée des seniors (65+) dans le CA : 54.1%
+
+Top 15 features importantes :
+   1. distance_pharmacie_plus_proche_x                   : 624
+   2. concurrence_par_1000_habitants_drive_10min         : 484
+   3. nb_supermarche_walk_10min                          : 467
+   4. nb_pharmacies_concurrentes_drive_5min              : 366
+   5. concurrence_par_1000_seniors_drive_10min           : 305
+   6. nb_sante_generale_drive_5min                       : 298
+   7. nb_sante_generale_walk_5min                        : 269
+   8. nb_pharmacies_concurrentes_walk_10min              : 268
+   9. taux_cadres_walk_10min                             : 250
+  10. taux_cadres_walk_5min                              : 249
+  11. nb_supermarche_drive_5min                          : 246
+  12. nb_hubs_brut_walk_10min                            : 216
+  13. ratio_femmes_hommes_65plus_walk_5min               : 212
+  14. nb_medecin_walk_5min                               : 198
+  15. densite_touristique_walk_5                         : 187
+
+SCORES CRÉÉS
+--------------------------------------------------------------------------------
+Scores globaux (tous âges) :
+  - score_attractivite_composite
+
+Scores ajustés 65+ :
+  - score_attractivite_65plus_composite
+  → Utilisé pour estimer le nombre de clients 65+ (Script 6)
+
+================================================================================
+FIN DU RAPPORT
+================================================================================

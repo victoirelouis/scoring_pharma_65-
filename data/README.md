@@ -11,47 +11,49 @@ data/
 
 ## Sources de données (`data/input/`)
 
-### 1. Données des pharmacies
-- **`pharmacies.csv`** : Points de vente des pharmacies avec géocodage
-  - Source : `DATA/DONNEES_PHARMACIES/points_ventes_202509 - RETRAVAILLE.geocoded.csv`
-  - Contient : Coordonnées, adresses, informations légales
+### 1. Sources brutes (`1_sources_brutes/`)
+- **`france-latest.osm.pbf`** : Données OpenStreetMap France complètes
+- **`contours_iris.gpkg`** : Contours géographiques des IRIS (Lambert 93)
+- **Fichiers FINESS** : Établissements sanitaires et médico-sociaux
+- **Fichiers RPPS** : Répertoire des professionnels de santé
 
-### 2. Données INSEE par IRIS (`iris_insee/`)
-- **`population_age.csv`** : Répartition de la population par âge et IRIS
-  - Source : `DATA/DONNEES_INSEE/2022/age/age_profession.CSV`
-  - Contient : Population 65-74, 75-84, 85+ ans par IRIS
+### 2. Données INSEE (`2_insee_brutes/`)
+- **`age_profession.CSV`** : Population par âge + professions par IRIS (49 277 IRIS)
+  - Contient : Population totale, 65+, 65-79, 80+, secteurs d'activité
+- **`diplome_formation.CSV`** : Niveau d'éducation par IRIS
+- **`logement.CSV`** : Caractéristiques du logement par IRIS
+- **`revenus.csv`** : Revenus médians par IRIS
 
-### 3. Données géographiques (`geo/`)
-- **`contours_iris.gpkg`** : Contours géographiques des IRIS
-  - Source : `DATA/DONNEES_INSEE/CONTOURS-IRIS-PE_3-0_GPKG_LAMB93_FXX-ED2025-01-01/contours-iris-pe.gpkg`
-  - Format : GeoPackage avec géométries
+### 3. Références (`4_references/`)
+- **`correspondance-code-insee-code-postal.csv`** : Mapping communes ↔ codes postaux (36 743 communes)
+- **`correspondance_iris_code_postal.csv`** : Mapping IRIS ↔ codes postaux (49 277 IRIS)
 
-### 4. Données d'enrichissement (`enrichissement/`)
-- **`pharmacie_iris_pond.csv`** : Pharmacies avec pondérations IRIS
-  - Source : `DATA/pharmacie_iris_pond.csv`
-  
-- **`pharmacies_enrichies.csv`** : Pharmacies avec données enrichies
-  - Source : `DATA/pharmacies_enrichies.csv`
+## Fichiers générés par le pipeline (`data/output/`)
 
-## Données supplémentaires disponibles
+### Phase 0 - Étapes préliminaires
 
-Les données suivantes sont disponibles dans le workspace principal mais pas encore intégrées :
+**1. Pharmacies (`pharmacies_finales/`)**
+- `pharmacies_final.csv` : Pharmacies géocodées avec variables de base (généré par `scripts/1_pharmacies/`)
 
-### Données INSEE complémentaires
-- **Logement** : `DATA/DONNEES_INSEE/2022/logement/logement.CSV`
-- **Diplômes** : `DATA/DONNEES_INSEE/2022/diplome_formation/diplome_formation.CSV`
-- **Familles** : `DATA/DONNEES_INSEE/2022/couples_familles/couples_familles.CSV`
-- **Activité résidents** : `DATA/DONNEES_INSEE/2022/activites_residents/activite_residents.CSV`
-- **Indicateurs CVI** : `DATA/DONNEES_INSEE/2022/FD_INDCVI_2022.csv`
+**2. HUBS (`data/processed/`)**
+- `HUBS_unified_final.csv` : Points d'attractivité (médecins, établissements, transports)
+- `FINESS_with_weights.csv` : Établissements FINESS avec poids seniors
+- `RPPS_merged_with_weights.csv` : Médecins RPPS avec poids
+- `rpps_geocode/` : Médecins RPPS géocodés par batch (203 MB)
 
-### Intégration future
-Pour ajouter ces données au projet :
+**3. Isochrones (`data/processed/isochrones/`)**
+- 115k fichiers geojson organisés en 6 types :
+  - `walk_5min/`, `walk_10min/`
+  - `drive_5min/`, `drive_10min/`, `drive_15min/`, `drive_20min/`
 
-```powershell
-# Copier les données supplémentaires si nécessaire
-Copy-Item "..\..\DATA\DONNEES_INSEE\2022\logement\logement.CSV" "data\input\iris_insee\logement.csv"
-Copy-Item "..\..\DATA\DONNEES_INSEE\2022\diplome_formation\diplome_formation.CSV" "data\input\iris_insee\diplome_formation.csv"
-```
+**4. Enrichissement (`data/output/`)**
+- `pharmacies_enrichies/` :
+  - `pharmacie_iris_pond_cleaned.csv` : Pondérations w_IRIS précalculées (intersection isochrones × IRIS)
+- `pharmacies_enrichies_insee.csv` : Pharmacies + données INSEE agrégées par w_IRIS
+- `pharmacies_final_avec_variables_touristiques.csv` : Pharmacies + INSEE + tourisme
+
+### Phase 1 (intermediaire/scripts/)
+- **`intermediaire/output/2_resultats_finaux/pharmacies_clients_65plus_HUFF_EXACT_IRIS.csv`** : Estimations finales clients 65+
 
 ## Utilisation dans le code
 
@@ -61,17 +63,19 @@ Copy-Item "..\..\DATA\DONNEES_INSEE\2022\diplome_formation\diplome_formation.CSV
 import pandas as pd
 from pathlib import Path
 
-# Chemin de base
-DATA_PATH = Path("data/input")
+# Chemins de base
+DATA_INPUT = Path("data/input")
+DATA_OUTPUT = Path("data/output")
+DATA_PROCESSED = Path("data/processed")
 
-# Charger les pharmacies
-pharmacies = pd.read_csv(DATA_PATH / "pharmacies.csv")
+# Charger les données sources INSEE
+age_profession = pd.read_csv(DATA_INPUT / "2_insee_brutes/age_profession.CSV")
+revenus = pd.read_csv(DATA_INPUT / "2_insee_brutes/revenus.csv")
 
-# Charger la population par âge
-population_age = pd.read_csv(DATA_PATH / "iris_insee/population_age.csv")
-
-# Charger les données enrichies
-pharmacies_enrichies = pd.read_csv(DATA_PATH / "enrichissement/pharmacies_enrichies.csv")
+# Charger les données calculées
+pharmacies_final = pd.read_csv(DATA_OUTPUT / "pharmacies_finales/pharmacies_final.csv")
+pharmacies_enrichies = pd.read_csv(DATA_OUTPUT / "pharmacies_enrichies_insee.csv")
+hubs = pd.read_csv(DATA_OUTPUT / "HUBS_unified_final.csv")
 ```
 
 ### Données géographiques
@@ -80,7 +84,7 @@ pharmacies_enrichies = pd.read_csv(DATA_PATH / "enrichissement/pharmacies_enrich
 import geopandas as gpd
 
 # Charger les contours IRIS
-iris_contours = gpd.read_file(DATA_PATH / "geo/contours_iris.gpkg")
+iris_contours = gpd.read_file(DATA_INPUT / "1_sources_brutes/contours_iris.gpkg")
 ```
 
 ## Format des données attendues
