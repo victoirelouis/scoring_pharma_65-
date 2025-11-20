@@ -42,20 +42,14 @@ htmlcov/
 .hypothesis/
 
 # Data - AUCUNE DONNÉE dans Git
-data/input/**
-data/output/**
-data/cache/**
-data/processed/**
-data/reports/**
-!data/input/.gitkeep
-!data/output/.gitkeep
-!data/cache/.gitkeep
-!data/processed/.gitkeep
-!data/reports/.gitkeep
+# Phase 1: Data preparation
+1_data_prep/input/**
+1_data_prep/output/**
+1_data_prep/cache/**
 
-# IMPORTANT: Cache OSM (trop volumineux pour GitHub)
-scripts/cache/
-cache/
+# Phase 2: ML pipeline
+2_pipeline_ml/output/**
+2_pipeline_ml/input_verif/**
 
 # Tous les fichiers de données
 *.csv
@@ -75,10 +69,8 @@ cache/
 .ipynb_checkpoints/
 *.ipynb
 
-# Documentation builds
-docs/_build/
-docs/_static/
-docs/_templates/
+# Documentation builds (si généré automatiquement)
+# docs/_build/
 
 # Environment variables
 .env
